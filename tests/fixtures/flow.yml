@@ -1,0 +1,40 @@
+name: workflow
+inputs:
+  user:
+    id: 1
+    name: Jack
+    email: jack@jackson.com
+steps:
+  - type: send_email
+    alias: send_welcome_email
+    args:
+      email: $inputs.user.email
+      email_template: ask_if_likes_pizza
+    then:
+      - wait2days
+      - check_response
+  - type: wait
+    alias: wait2days
+    args:
+      - "2 days"
+  - alias: check_response
+    type: check_response
+    args:
+      - $user.email
+    then:
+      - type: ifelse
+        args:
+          if: $check_response.positive
+          then: send_positive_response
+          else: send_negative_response
+  - alias: send_positive_response
+    type: send_email
+    args:
+      email: $inputs.user.email
+      email_tempalte: send_invite_to_pizza_club
+  - alias: send_negative_response
+    type: send_email
+    args:
+      email: $inputs.user.email
+      email_tempalte: send_agressive_goodbye
+
