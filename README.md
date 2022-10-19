@@ -1,6 +1,6 @@
 # Plow
 
-Plow as a python package for building and running DAG workflows,
+Plow is a python package for building and running DAG workflows,
 described by yaml files and powered by your own python functions.
 
 ## Examples
@@ -139,5 +139,9 @@ And check the results (the output nodes):
 
 - [ ] Editor support
   1. Enable autocompletion from a JSON Schema produced by a pydantic
-     model generated through inspecting the internals of a python function
-     definition (to get the type hints).
+     model generated through inspecting the internals of collected tasks
+  2. Improve the default JSON schema completion to use the workflow context as completion source
+  
+  
+# Similar
+- [Airflow](https://github.com/apache/airflow)
