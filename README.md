@@ -98,7 +98,7 @@ steps:
       - aa
 ```
 
-Than the user may execute using a cli, for example: 
+Than the user may execute using a cli, for example:
 
 ```bash
 # Runs the quadradic.yml workflow using the tasks module (tasks.py) as a source for tasks definitions
@@ -106,6 +106,7 @@ python -m plow.run --source tasks quadratic.yml
 ```
 
 And check the results (the output nodes):
+
 ```
 {
     "root_1": 1.5,
@@ -113,8 +114,6 @@ And check the results (the output nodes):
 }
 
 ```
-
-
 
 ## Goals
 
@@ -135,13 +134,21 @@ And check the results (the output nodes):
     - Validation of the workflow DAG
     - Topological iteration of tasks
   - [eval](https://docs.python.org/3/library/functions.html#eval)
-    -  Evalute the reference strings, e.g. "$inputs.x"
+    - Evalute the reference strings, e.g. "$inputs.x"
 
 - [ ] Editor support
+
   1. Enable autocompletion from a JSON Schema produced by a pydantic
      model generated through inspecting the internals of collected tasks
-  2. Improve the default JSON schema completion to use the workflow context as completion source
-  
-  
+  2. Improve the default JSON schema completion to use the workflow context as completion source,
+     e.g. when pressing `$` when filling a `args` get's all `alias` and `input` as options for completion. Even better, only those that
+     actually match the type signature.
+
+  Useful links:
+
+  - [yaml-language-server](https://github.com/redhat-developer/yaml-language-server)
+    - Somewhere to store a JSON schema and get some editor support
+
 # Similar
+
 - [Airflow](https://github.com/apache/airflow)
