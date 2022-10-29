@@ -1,20 +1,40 @@
+import graphlib
+from pprint import pprint
 import yaml
 from pathlib import Path
 from typing import Any, Callable, List, Optional, Union
 from pydantic import BaseModel
 
-StepSchema = Any ## TODO: Generate NodeType Union
+class StepSchema(BaseModel):
+    alias: str
+    type: str # TODO: narrow it to Literal?
+    args: Any # TODO: narrow it to object
 
 class Dag(BaseModel):
     name: str
     inputs: Any
     steps: List[StepSchema]
 
-    def run(self, inputs: dict[str, Any]) -> Any:
-        ...
+    def __init__(self, **kwargs):
+        super().__init__(**kwargs)
 
-    def iterate_toposort(self, fn: Callable[[StepSchema, dict[str, Any]], None]):
-        ...
+    def _process(self, step: StepSchema):
+        pprint(step)
+
+    def run(self, inputs: dict[str, Any]) -> Any:
+        self.iterate_toposort(lambda s: self._process(s))
+
+    def iterate_toposort(self, fn: Callable[[StepSchema], None]):
+        sorter = graphlib.TopologicalSorter()
+        steps_by_alias = {
+                step.alias: step for step in self.steps
+                }
+        for step in self.steps:
+            sorter.add(step.alias)
+        nodes = sorter.static_order()
+        for step_alias in nodes:
+            step = steps_by_alias[step_alias]
+            fn(step)
 
 
 def make_dag(*, yaml_path: Optional[Union[Path, str]] = None, yaml_str: Optional[str] = None) -> Dag:
