@@ -4,31 +4,34 @@ from typing import Generator
 import plow
 from plow.decorators import clean_builder
 
+
 @pytest.fixture(scope="function")
 def quadratic_solver_tasks() -> Generator[None, None, None]:
     @plow.task
     def add(a: float, b: float) -> float:
-      return a + b
+        return a + b
 
     @plow.task
     def multiply(a: float, b: float) -> float:
-      return a * b
+        return a * b
 
     @plow.task
     def divide(a: float, b: float) -> float:
-      return a / b
+        return a / b
 
     @plow.task
     def subtract(a: float, b: float) -> float:
-      return a - b
+        return a - b
 
     @plow.task
     def my_sqrt(a: float) -> float:
-      import math
-      return math.sqrt(a)
+        import math
+
+        return math.sqrt(a)
 
     yield None
     clean_builder()
+
 
 @pytest.fixture(scope="function")
 def quadratic_solver_yaml_fixture() -> str:

@@ -2,6 +2,7 @@ from inspect import Signature, signature
 from types import FunctionType
 from typing import Callable, List, Any
 
+
 class FunctionMetadata:
     name: str
     signature: Signature
@@ -16,6 +17,7 @@ class FunctionMetadata:
     def ref(self):
         return self._ref
 
+
 class PydanticSchemaBuilder:
     def __init__(self):
         self.funcs: List[FunctionMetadata] = []
@@ -23,10 +25,13 @@ class PydanticSchemaBuilder:
     def clean(self):
         self.funcs = []
 
+
 builder = PydanticSchemaBuilder()
+
 
 def clean_builder():
     builder.clean()
+
 
 def get_func(func_name: str) -> FunctionMetadata:
     for func in builder.funcs:
@@ -38,4 +43,3 @@ def get_func(func_name: str) -> FunctionMetadata:
 def task(fn: Callable):
     builder.funcs.append(FunctionMetadata(fn))
     return fn
-
