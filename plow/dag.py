@@ -1,9 +1,9 @@
 import graphlib
-from pprint import pprint
 import yaml
 from pathlib import Path
 from typing import Any, Callable, List, Optional, Union
 from pydantic import BaseModel
+from plow.decorators import get_func
 
 class StepSchema(BaseModel):
     alias: str
@@ -14,15 +14,32 @@ class Dag(BaseModel):
     name: str
     inputs: Any
     steps: List[StepSchema]
+    _mem = {}
 
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
+        for key, v in self.inputs.items():
+            self._mem[f"inputs.{key}"] = v
+
+    def _read(self, key: Any) -> Any:
+        if isinstance(key, str):
+            if key[0] == "$": # TODO handle ${...} cases
+                return self._mem[key[1:]] # read as reference
+        return key # read as the value loaded by yaml TODO: support structured data
 
     def _process(self, step: StepSchema):
-        pprint(step)
+        func = get_func(func_name=step.type)
+        callable = func.ref()
+        if isinstance(step.args, dict):
+            args = {arg_name: self._read(arg_value) for arg_name, arg_value in step.args.items()}
+            self._mem[step.alias] = callable(**args)
+        elif isinstance(step.args, list):
+            args = [self._read(arg_value) for arg_value in step.args]
+            self._mem[step.alias] = callable(*args)
 
     def run(self, inputs: dict[str, Any]) -> Any:
         self.iterate_toposort(lambda s: self._process(s))
+        return self._mem # TODO: return more meaningful output
 
     def iterate_toposort(self, fn: Callable[[StepSchema], None]):
         sorter = graphlib.TopologicalSorter()

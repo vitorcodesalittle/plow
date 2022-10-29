@@ -23,8 +23,10 @@ def quadratic_solver_tasks() -> Generator[None, None, None]:
       return a - b
 
     @plow.task
-    def sqrt(a: float) -> float:
-      return sqrt(a)
+    def my_sqrt(a: float) -> float:
+      import math
+      return math.sqrt(a)
+
     yield None
     clean_builder()
 
@@ -59,7 +61,7 @@ steps:
       - $b2
       - $4ac
   - alias: sqrt_disc
-    type: sqrt
+    type: my_sqrt 
     args:
       - $disc
   - alias: minus_b
@@ -76,20 +78,20 @@ steps:
     type: add
     args:
       - "$minus_b"
-      - sqrt_disc
-  - alias: negative_num
+      - $sqrt_disc
+  - alias: negative_sum
     type: subtract
     args:
       - "$minus_b"
-      - sqrt_disc
+      - $sqrt_disc
   - alias: root_1
     type: divide
     args:
-      - positive_num
-      - aa
+      - $positive_num
+      - $aa
   - alias: root_2
     type: divide
     args:
-      - negative_sum
-      - aa
+      - $negative_sum
+      - $aa
     """
