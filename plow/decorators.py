@@ -1,6 +1,6 @@
 from inspect import Signature, signature
 from types import FunctionType
-from typing import Any, Callable, List
+from typing import Callable, List
 
 class FunctionMetadata:
     name: str
@@ -15,17 +15,15 @@ class PydanticSchemaBuilder:
     def __init__(self):
         self.funcs: List[FunctionMetadata] = []
 
+    def clean(self):
+        self.funcs = []
+
 builder = PydanticSchemaBuilder()
 
-def plow(fn: Callable):
+def clean_builder():
+    builder.clean()
+
+def task(fn: Callable):
     builder.funcs.append(FunctionMetadata(fn))
     return fn
-
-StepSchema = Any ## TODO: Generate NodeType Union
-
-class PlowSchema:
-    name: str
-    inputs: Any
-    steps: List[StepSchema]
-    
 

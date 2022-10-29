@@ -2,11 +2,12 @@
 name = "plow"
 version = "0.1.0"
 description = ""
-authors = ["Vitor <vitor.albuquerque@shawandpartners.com>"]
+authors = ["Vilma <vitormaia1890@gmail.com"]
 
 [tool.poetry.dependencies]
 python = "^3.10"
 pydantic = "^1.10.2"
+pytest = "^7.2.0"
 
 [tool.poetry.dev-dependencies]
 
