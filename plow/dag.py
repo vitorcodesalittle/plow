@@ -17,16 +17,18 @@ class Dag(BaseModel):
     inputs: Any
     steps: List[StepSchema]
     _mem = {}
+    steps_by_alias: dict[str, StepSchema] = {}
 
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
+        self.steps_by_alias = {step.alias: step for step in self.steps}
         for key, v in self.inputs.items():
             self._mem[f"inputs.{key}"] = v
 
     def _read(self, key: Any) -> Any:
         if isinstance(key, str):
-            if key[0] == "$":  # TODO handle ${...} cases
-                return self._mem[key[1:]]  # read as reference
+            if self._is_reference(key):  # TODO handle ${...} cases
+                return self._mem[self._unwrap_dollar(key)]  # read as reference
         return key  # read as the value loaded by yaml TODO: support structured data
 
     def _process(self, step: StepSchema):
@@ -46,14 +48,35 @@ class Dag(BaseModel):
         self.iterate_toposort(lambda s: self._process(s))
         return self._mem  # TODO: return more meaningful output
 
+    def _is_input(self, value: Any):
+        return self._is_reference(value) and self._unwrap_dollar(value).startswith(
+            "inputs."
+        )
+
+    def _is_reference(self, value: Any):
+        return isinstance(value, str) and value.startswith("$")
+
+    def _unwrap_dollar(self, value: Any):
+        return value[1:]
+
+    def _get_outgoing_steps(self, step_name):
+        step = self.steps_by_alias[step_name]
+        arg_values = step.args.values() if isinstance(step, dict) else step.args
+        refs = []
+        for value in arg_values:
+            if self._is_reference(value) and not self._is_input(value):
+                refs.append(self._unwrap_dollar(value))
+        return refs
+
     def iterate_toposort(self, fn: Callable[[StepSchema], None]):
         sorter = graphlib.TopologicalSorter()
-        steps_by_alias = {step.alias: step for step in self.steps}
+
         for step in self.steps:
-            sorter.add(step.alias)
+            outgoing = self._get_outgoing_steps(step.alias)
+            sorter.add(step.alias, *outgoing)
         nodes = sorter.static_order()
         for step_alias in nodes:
-            step = steps_by_alias[step_alias]
+            step = self.steps_by_alias[step_alias]
             fn(step)
 
 

@@ -43,21 +43,16 @@ inputs:
   b: 2
   c: 6
 steps:
-  - alias: ac
-    type: multiply
-    args:
-      - $inputs.a
-      - $inputs.c
   - alias: 4ac
     type: multiply
     args:
       - 4
       - $ac
-  - alias: b2
-    type: multiply
+  - alias: root_2
+    type: divide
     args:
-      a: $inputs.b
-      b: $inputs.b
+      - $negative_sum
+      - $aa
   - alias: disc
     type: subtract
     args:
@@ -87,14 +82,19 @@ steps:
     args:
       - "$minus_b"
       - $sqrt_disc
+  - alias: b2
+    type: multiply
+    args:
+      a: $inputs.b
+      b: $inputs.b
+  - alias: ac
+    type: multiply
+    args:
+      - $inputs.a
+      - $inputs.c
   - alias: root_1
     type: divide
     args:
       - $positive_num
-      - $aa
-  - alias: root_2
-    type: divide
-    args:
-      - $negative_sum
       - $aa
     """
