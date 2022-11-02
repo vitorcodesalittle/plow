@@ -1,5 +1,5 @@
-import graphlib
 import yaml
+import graphlib
 from pathlib import Path
 from typing import Any, Callable, List, Optional, Union
 from pydantic import BaseModel

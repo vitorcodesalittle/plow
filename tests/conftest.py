@@ -5,8 +5,7 @@ import plow
 from plow.decorators import clean_builder
 
 
-@pytest.fixture(scope="function")
-def quadratic_solver_tasks() -> Generator[None, None, None]:
+def quadratic_solver_tasks():
     @plow.task
     def add(a: float, b: float) -> float:
         return a + b
@@ -29,6 +28,10 @@ def quadratic_solver_tasks() -> Generator[None, None, None]:
 
         return math.sqrt(a)
 
+
+@pytest.fixture(scope="function")
+def quadratic_solver_tasks_fixture() -> Generator[None, None, None]:
+    quadratic_solver_tasks()
     yield None
     clean_builder()
 

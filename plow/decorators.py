@@ -26,20 +26,24 @@ class PydanticSchemaBuilder:
         self.funcs = []
 
 
-builder = PydanticSchemaBuilder()
+_builder = PydanticSchemaBuilder()
 
 
 def clean_builder():
-    builder.clean()
+    _builder.clean()
 
 
 def get_func(func_name: str) -> FunctionMetadata:
-    for func in builder.funcs:
+    for func in _builder.funcs:
         if func.name == func_name:
             return func
     raise ValueError(f"No func named {func_name}")
 
 
+def get_all_funcs() -> List[FunctionMetadata]:
+    return _builder.funcs
+
+
 def task(fn: Callable):
-    builder.funcs.append(FunctionMetadata(fn))
+    _builder.funcs.append(FunctionMetadata(fn))
     return fn

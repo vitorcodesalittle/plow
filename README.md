@@ -117,24 +117,14 @@ And check the results (the output nodes):
 
 ## Goals
 
-- [ ] Basic execution of DAGs
+- [x] Basic execution of DAGs
 
   1. Implement a decorator to register functions as building blocks for workflows
   2. Create a workflow assembler, that takes a YAML file describing the workflow,
      collects the used functions, and iterate through the defined tasks in topological
      order
-
-  The following python libs/functions will help us do that:
-
-  - [pydantic](https://pydantic-docs.helpmanual.io/)
-    - Validating the workflow YAMLs
-  - [inspect](https://docs.python.org/3/library/inspect.html)
-    - Get python functions signature at runtime
-  - [graphlib](https://docs.python.org/3/library/graphlib.html)
-    - Validation of the workflow DAG
-    - Topological iteration of tasks
-  - [eval](https://docs.python.org/3/library/functions.html#eval)
-    - Evalute the reference strings, e.g. "$inputs.x"
+- [ ] Techinal Debit
+    1. Resolve todos of Dag and unit test it
 
 - [ ] Editor support
 
