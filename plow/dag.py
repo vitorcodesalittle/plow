@@ -17,11 +17,11 @@ class Dag(BaseModel):
     inputs: Any
     steps: List[StepSchema]
     _mem = {}
-    steps_by_alias: dict[str, StepSchema] = {}
+    _steps_by_alias: dict[str, StepSchema] = {}
 
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
-        self.steps_by_alias = {step.alias: step for step in self.steps}
+        self._steps_by_alias = {step.alias: step for step in self.steps}
         for key, v in self.inputs.items():
             self._mem[f"inputs.{key}"] = v
 
@@ -60,7 +60,7 @@ class Dag(BaseModel):
         return value[1:]
 
     def _get_outgoing_steps(self, step_name):
-        step = self.steps_by_alias[step_name]
+        step = self._steps_by_alias[step_name]
         arg_values = step.args.values() if isinstance(step, dict) else step.args
         refs = []
         for value in arg_values:
@@ -76,7 +76,7 @@ class Dag(BaseModel):
             sorter.add(step.alias, *outgoing)
         nodes = sorter.static_order()
         for step_alias in nodes:
-            step = self.steps_by_alias[step_alias]
+            step = self._steps_by_alias[step_alias]
             fn(step)
 
 

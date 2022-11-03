@@ -108,7 +108,7 @@ def gen_module():
     return m
 
 
-quadratic_solver_tasks()  # import decorated functions
-script = gen_module()
-script = ast.fix_missing_locations(script)
-print(ast.unparse(script))
+def generate_schemas_script():
+    script = gen_module()
+    script = ast.fix_missing_locations(script)
+    return ast.unparse(script)
