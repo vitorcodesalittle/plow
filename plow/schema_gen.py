@@ -10,6 +10,12 @@ from typing import List
 from tests.conftest import quadratic_solver_tasks
 
 
+def strip_class(class_str: str):
+    if class_str.startswith("<class '") and class_str.endswith("'>"):
+        return class_str[8:-2]
+    return class_str
+
+
 def gen_step_and_args(
     function_metadata: FunctionMetadata,
 ) -> tuple[ast.ClassDef, ast.ClassDef]:
@@ -41,12 +47,12 @@ def gen_step_and_args(
             args_class_body.append(
                 ast.AnnAssign(
                     target=ast.Name(id=key, ctx=ast.Store()),
-                    annotation=ast.Name(id=value.annotation),
+                    annotation=ast.Name(id=strip_class(str(value.annotation))),
                     simple=1,
                 )
             )
         else:
-            ...
+            raise Exception("Not implemented")
 
     step_ast = ast.ClassDef(
         name=step_class_name,
@@ -104,4 +110,5 @@ def gen_module():
 quadratic_solver_tasks()  # import decorated functions
 script = gen_module()
 script = ast.fix_missing_locations(script)
+
 print(ast.unparse(script))
