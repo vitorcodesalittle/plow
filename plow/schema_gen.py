@@ -1,5 +1,6 @@
 """
-This package have functions to create narrow schemas for the pydantic steps
+This package have functions generate to pydantic schemas for functions
+decorated with plow.task
 """
 
 import ast
@@ -76,7 +77,7 @@ def gen_module():
     step_names: List[str] = []
     for func in get_all_funcs():
         step, args = gen_step_and_args(func)
-        script_defs += [step, args]
+        script_defs += [args, step]
         step_names.append(step.name)
     m = ast.Module(
         body=[
@@ -110,5 +111,4 @@ def gen_module():
 quadratic_solver_tasks()  # import decorated functions
 script = gen_module()
 script = ast.fix_missing_locations(script)
-
 print(ast.unparse(script))
