@@ -8,8 +8,6 @@ from plow.decorators import get_all_funcs, FunctionMetadata
 from inspect import Parameter
 from typing import List
 
-from tests.conftest import quadratic_solver_tasks
-
 
 def strip_class(class_str: str):
     if class_str.startswith("<class '") and class_str.endswith("'>"):
@@ -25,17 +23,21 @@ def gen_step_and_args(
     step_class_name = f"{fn_name}_step"
     step_class_body = [
         ast.AnnAssign(
+            target=ast.Name(id="type", ctx=ast.Store()),
+            annotation=ast.Name(id=f'Literal["{fn_name}"]', ctx=ast.Load()),
+            value=ast.Constant(value=fn_name),
+            simple=1,
+        ),
+        ast.AnnAssign(
             target=ast.Name(id="alias", ctx=ast.Store()),
             annotation=ast.Name(id="str", ctx=ast.Load()),
             simple=1,
         ),
-        ast.Assign(
-            targets=[ast.Name(id="type", ctx=ast.Store())],
-            value=ast.Constant(value=fn_name),
-        ),
         ast.AnnAssign(
             target=ast.Name(id="args", ctx=ast.Store()),
-            annotation=ast.Name(id=args_class_name, ctx=ast.Load()),
+            annotation=ast.Name(
+                id=f"List[str | Any] | {args_class_name}", ctx=ast.Load()
+            ),
             simple=1,
         ),
     ]
@@ -48,7 +50,9 @@ def gen_step_and_args(
             args_class_body.append(
                 ast.AnnAssign(
                     target=ast.Name(id=key, ctx=ast.Store()),
-                    annotation=ast.Name(id=strip_class(str(value.annotation))),
+                    annotation=ast.Name(
+                        id=f"str | {strip_class(str(value.annotation))}"
+                    ),
                     simple=1,
                 )
             )
@@ -81,7 +85,15 @@ def gen_module():
         step_names.append(step.name)
     m = ast.Module(
         body=[
-            ast.ImportFrom(module="typing", names=[ast.alias(name="Union")], level=0),
+            ast.ImportFrom(
+                module="typing",
+                names=[
+                    ast.alias(name="Union"),
+                    ast.alias(name="Literal"),
+                    ast.alias(name="Any"),
+                ],
+                level=0,
+            ),
             ast.ImportFrom(
                 module="pydantic.main", names=[ast.alias(name="BaseModel")], level=0
             ),

@@ -29,7 +29,7 @@ class Dag(BaseModel):
         if isinstance(key, str):
             if self._is_reference(key):  # TODO handle ${...} cases
                 return self._mem[self._unwrap_dollar(key)]  # read as reference
-        return key  # read as the value loaded by yaml TODO: support structured data
+        return key  # read as the raw value
 
     def _process(self, step: StepSchema):
         func = get_func(func_name=step.type)

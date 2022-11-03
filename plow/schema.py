@@ -1,4 +1,4 @@
-from typing import Union
+from typing import List, Union
 from pydantic.main import BaseModel
 
 
@@ -10,7 +10,7 @@ class AddArgs(BaseModel):
 class AddStep(BaseModel):
     alias: str
     type = "add"
-    args: AddArgs
+    args: AddArgs | List[str]
 
 
 class SubArgs(BaseModel):
