@@ -13,6 +13,13 @@ class StepSchema(BaseModel):
 
 
 class Dag(BaseModel):
+    class Config:
+        """
+        Model Configuration: https://pydantic-docs.helpmanual.io/usage/model_config/
+        """
+
+        underscore_attrs_are_private = True
+
     name: str
     inputs: Any
     steps: List[StepSchema]
@@ -28,7 +35,10 @@ class Dag(BaseModel):
     def _read(self, key: Any) -> Any:
         if isinstance(key, str):
             if self._is_reference(key):  # TODO handle ${...} cases
-                return self._mem[self._unwrap_dollar(key)]  # read as reference
+                try:
+                    return self._mem[self._unwrap_dollar(key)]  # read as reference
+                except KeyError:
+                    raise Exception(f"{key} not found in _mem: {self._mem}")
         return key  # read as the raw value
 
     def _process(self, step: StepSchema):
@@ -43,6 +53,8 @@ class Dag(BaseModel):
         elif isinstance(step.args, list):
             args = [self._read(arg_value) for arg_value in step.args]
             self._mem[step.alias] = callable(*args)
+        else:
+            raise Exception("step args must be dict or list")
 
     def run(self, inputs: dict[str, Any]) -> Any:
         self.iterate_toposort(lambda s: self._process(s))
@@ -61,7 +73,7 @@ class Dag(BaseModel):
 
     def _get_outgoing_steps(self, step_name):
         step = self._steps_by_alias[step_name]
-        arg_values = step.args.values() if isinstance(step, dict) else step.args
+        arg_values = step.args.values() if isinstance(step.args, dict) else step.args
         refs = []
         for value in arg_values:
             if self._is_reference(value) and not self._is_input(value):
