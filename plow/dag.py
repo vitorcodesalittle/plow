@@ -58,13 +58,11 @@ class Dag(BaseModel):
                 references_values = {ref: self._read(f"${ref}") for ref in references}
                 step_evaluated = depend
                 for ref, val in references_values.items():
-                    print(f"ref {ref} replapced by {val}")
                     val = str(val)
                     step_evaluated = re.compile(rf"\${ref}").sub(val, step_evaluated)
                     step_evaluated = re.compile(r"\${" + ref + "}").sub(
                         val, step_evaluated
                     )
-                print("step after solving refs:", step_evaluated)
                 globals = {"return_": None}
                 try:
                     exec(f"return_ = {step_evaluated}", globals)
