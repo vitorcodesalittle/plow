@@ -16,3 +16,9 @@ def quadratic_solver_tasks_fixture() -> Generator[None, None, None]:
 def quadratic_solver_yaml_fixture():
     with open("tests/fixtures/arith.yml") as f:
         yield f.read()
+
+
+@pytest.fixture(scope="function")
+def quadratic_solver_cf_yaml_fixture():
+    with open("tests/fixtures/quadratic_with_control_flow.yaml") as f:
+        yield f.read()

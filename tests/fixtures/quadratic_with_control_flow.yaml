@@ -1,9 +1,5 @@
 name: ArithmeticExampleWithControlFlow
 description: executes (-b +- sqrt(b²-4ac))/2a
-inputs:
-  a: -4
-  b: 2
-  c: 6
 steps:
   - alias: 4ac
     type: multiply
@@ -24,6 +20,8 @@ steps:
     type: my_sqrt 
     args:
       - $disc
+    depends:
+      - $disc > 0 # only executes if disc > 0
   - alias: minus_b
     type: multiply
     args:
@@ -59,3 +57,4 @@ steps:
     args:
       - $positive_num
       - $aa
+
