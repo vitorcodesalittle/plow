@@ -9,6 +9,32 @@ from plow.decorators import get_func
 ref_regex = re.compile(r"(\$[\w\.]+|\${[^}]*})")
 
 
+class AnyAccessDict(dict):
+    def __init__(self):
+        super().__init__()
+
+    def getitem(self, k: str) -> Any:
+        return self.d_[k]
+
+    def setitem(self, k: str, v: Any):
+        self.d_[k] = v
+
+    def __getitem__(self, k: str) -> Any:
+        return super().__getitem__(k)
+
+    def __setitem__(self, k: str, v: Any) -> None:
+        return super().__setitem__(k, v)
+
+    def __getattribute__(self, name: str) -> Any:
+        return super().__getitem__(name)
+
+    def __setattr__(self, name: str, value: Any) -> None:
+        return super().__setitem__(name, value)
+
+    def clear(self):
+        self.d_.clear()
+
+
 class StepSchema(BaseModel):
     alias: str
     type: str
@@ -23,13 +49,14 @@ class Dag(BaseModel):
     name: str
     inputs: Any
     steps: List[StepSchema]
-    _mem = {}
+    _mem: AnyAccessDict
     _steps_by_alias: dict[str, StepSchema] = {}
     _stopped: bool = False
 
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
         self._steps_by_alias = {step.alias: step for step in self.steps}
+        self._mem = AnyAccessDict()
         if self.inputs:
             self.save_inputs(self.inputs)
         self._stopped = False
@@ -86,7 +113,7 @@ class Dag(BaseModel):
 
     def run(self, inputs: Optional[dict[str, Any]] = None) -> Any:
         if inputs:
-            self._mem = {}
+            self._mem = AnyAccessDict()
             self.save_inputs(inputs)
         self.iterate_toposort(lambda s: self._process(s))
         return self._mem  # TODO: return more meaningful output
@@ -131,7 +158,8 @@ class Dag(BaseModel):
                 continue
             if self._is_reference(value) and not self._is_input(value):
                 for ref in self._unwrap_dollar(value):
-                    refs.append(ref)
+                    first_ref = ref.split(".")[0]
+                    refs.append(first_ref)
         if step.depends:
             for depend in step.depends:
                 for ref in self._unwrap_dollar(depend):
@@ -145,10 +173,10 @@ class Dag(BaseModel):
             outgoing = self._get_outgoing_steps(step.alias)
             sorter.add(step.alias, *outgoing)
         nodes = sorter.static_order()
-        for step_alias in nodes:
-            if step_alias.startswith("inputs"):
+        for node in nodes:
+            if node not in self._steps_by_alias:
                 continue
-            step = self._steps_by_alias[step_alias]
+            step = self._steps_by_alias[node]
             fn(step)
             if self._stopped:
                 break

@@ -124,7 +124,7 @@ And check the results (the output nodes):
      collects the used functions, and iterate through the defined tasks in topological
      order
 
-- [ ] Advanced execution of workflows:
+- [x] Advanced execution of workflows:
 
   1. Support control flow, i.e. provide mechanisms for if_else conditions, and not necessarily execute the whole DAG [here are some ideas](./CONTROL_FLOW_IDEAS.md)
 
@@ -137,11 +137,11 @@ And check the results (the output nodes):
       e.g. when pressing `$` when filling a `args` get's all `alias` and `input` as options for completion. Even better, only those that
       actually match the type signature.
 
-  Useful links:
-
-  - [yaml-language-server](https://github.com/redhat-developer/yaml-language-server)
-
 - [ ] Documentation, publishing and CI
+  1. [ ] Document Dag schema attribute
+  2. [ ] Pydocs on exported functions
+  3. [ ] sphinx
+  4. [ ] CI: lint -> test -> gen docs -> publish in pip -> update sphinx github page
 
 # Similar
 
