@@ -1,38 +1,15 @@
 import re
+import types
 import yaml
 import graphlib
 from pathlib import Path
-from typing import Any, Callable, List, Optional, Union
+from typing import Any, Callable, List, Optional, Type, Union
 from pydantic import BaseModel
-from plow.decorators import get_func
+from plow import schema_gen
+from plow.decorators import clean_builder, get_func
+from plow.utils import import_plow_decorated_funcs
 
 ref_regex = re.compile(r"(\$[\w\.]+|\${[^}]*})")
-
-
-class AnyAccessDict(dict):
-    def __init__(self):
-        super().__init__()
-
-    def getitem(self, k: str) -> Any:
-        return self.d_[k]
-
-    def setitem(self, k: str, v: Any):
-        self.d_[k] = v
-
-    def __getitem__(self, k: str) -> Any:
-        return super().__getitem__(k)
-
-    def __setitem__(self, k: str, v: Any) -> None:
-        return super().__setitem__(k, v)
-
-    def __getattribute__(self, name: str) -> Any:
-        return super().__getitem__(name)
-
-    def __setattr__(self, name: str, value: Any) -> None:
-        return super().__setitem__(name, value)
-
-    def clear(self):
-        self.d_.clear()
 
 
 class StepSchema(BaseModel):
@@ -49,31 +26,45 @@ class Dag(BaseModel):
     name: str
     inputs: Any
     steps: List[StepSchema]
-    _mem: AnyAccessDict
+    _mem: dict[str, Any]
     _steps_by_alias: dict[str, StepSchema] = {}
     _stopped: bool = False
 
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
         self._steps_by_alias = {step.alias: step for step in self.steps}
-        self._mem = AnyAccessDict()
+        self._mem = {}
         if self.inputs:
             self.save_inputs(self.inputs)
         self._stopped = False
 
     def save_inputs(self, inputs: dict[str, Any]):
+        self._mem["inputs"] = {}
         for key, v in inputs.items():
-            self._mem[f"inputs.{key}"] = v
+            self._mem["inputs"][key] = v
 
     def _read(self, key: Any) -> Any:
         if isinstance(key, str):
             if self._is_reference(key):
-                try:
-                    refs = self._unwrap_dollar(key)
-                    assert len(refs) == 1, "Only read one at a time"
-                    return self._mem[refs[0]]
-                except KeyError:
-                    raise KeyError(f"{key} not found in _mem: {self._mem}")
+                refs = self._unwrap_dollar(key)
+                assert len(refs) == 1, "Only read one at a time"
+                ref = refs[0]
+                splitted_ref = ref.split(".")
+                ref_key = splitted_ref[0]
+                ref_attributes = splitted_ref[1:]
+                from_mem = self._mem[ref_key]
+                value = from_mem
+                for attribute in ref_attributes:
+                    try:
+                        # Try accessing as attribute
+                        print("Getting as attribute")
+                        value = getattr(value, attribute)
+                    except AttributeError:
+                        print("Getting as dict")
+                        # Try accessing as dict
+                        value = value[attribute]
+
+                return value
         return key
 
     def _process(self, step: StepSchema):
@@ -104,8 +95,13 @@ class Dag(BaseModel):
                 arg_name: self._read(arg_value)
                 for arg_name, arg_value in step.args.items()
             }
+            args = step.Args.parse_obj(args)  # noqa
+            args = {
+                arg_name: getattr(args, arg_name) for arg_name in args.__fields__.keys()
+            }
             self._mem[step.alias] = callable(**args)
         elif isinstance(step.args, list):
+            raise Exception("not anymore")
             args = [self._read(arg_value) for arg_value in step.args]
             self._mem[step.alias] = callable(*args)
         else:
@@ -113,7 +109,7 @@ class Dag(BaseModel):
 
     def run(self, inputs: Optional[dict[str, Any]] = None) -> Any:
         if inputs:
-            self._mem = AnyAccessDict()
+            self._mem = {}
             self.save_inputs(inputs)
         self.iterate_toposort(lambda s: self._process(s))
         return self._mem  # TODO: return more meaningful output
@@ -183,7 +179,9 @@ class Dag(BaseModel):
 
 
 def make_dag(
-    *, yaml_path: Optional[Union[Path, str]] = None, yaml_str: Optional[str] = None
+    *,
+    yaml_path: Optional[Union[Path, str]] = None,
+    yaml_str: Optional[str] = None,
 ) -> Dag:
     assert yaml_str or yaml_path, "yaml_str or yaml_path is required"
     yaml_values = {}
@@ -192,4 +190,39 @@ def make_dag(
     elif yaml_path:
         with open(yaml_path, "rb") as f:
             yaml_values = yaml.unsafe_load(f)
+
     return Dag(**yaml_values)
+
+
+def make_improved_dag_class(src_module: Optional[str]) -> Type[Dag]:
+    if src_module:
+        clean_builder()  # makes sure builder is in a clean state
+        import_plow_decorated_funcs(src_module)
+    script = schema_gen.generate_schemas_script()  # gen script defining Step
+    print(script)
+    exec(script, globals())  # Run script
+
+    class DagOverwritten(Dag):  # overite Dag schema with generated steps
+        steps: List[Step]  # noqa
+
+    return DagOverwritten
+
+
+def make_improved_dag(
+    *,
+    yaml_path: Optional[Union[Path, str]] = None,
+    yaml_str: Optional[str] = None,
+    src_module: Optional[str] = None,
+) -> Dag:
+    BetterDag = make_improved_dag_class(src_module)
+    assert yaml_str or yaml_path, "yaml_str or yaml_path is required"
+    if yaml_str:
+        yaml_values = yaml.unsafe_load(yaml_str)
+    elif yaml_path:
+        with open(yaml_path, "rb") as f:
+            yaml_values = yaml.unsafe_load(f)
+    else:
+        raise Exception(
+            f"yaml_str or yaml_path must be strings, got {yaml_str} and {yaml_path}"
+        )
+    return BetterDag(**yaml_values)

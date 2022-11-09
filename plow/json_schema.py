@@ -8,10 +8,7 @@ Wanted types of acecss:
 2. as a web server that updates on source changes
 """
 
-from typing import List
-from plow import schema_gen
-from plow.dag import Dag
-from plow.decorators import clean_builder
+from plow.dag import make_improved_dag_class
 
 
 def add_lines(multiline: str):
@@ -20,22 +17,12 @@ def add_lines(multiline: str):
     )
 
 
-def print_schema(src_module: str, debug=False):
+def print_schema(src_module: str):
     """
     Print JSON schema using plow.task decorated functions
     in `src_module`"""
-    clean_builder()  # makes sure builder is in a clean state
-    __import__(src_module)  # import decorated functions
-    script = schema_gen.generate_schemas_script()  # gen script defining Step
-    if debug:
-        print(add_lines(script))
-
-    exec(script, globals())  # Run script
-
-    class DagOverwritten(Dag):  # overite Dag schema with generated steps
-        steps: List[Step]  # noqa
-
-    print(DagOverwritten.schema_json(indent=2))
+    BetterDag = make_improved_dag_class(src_module=src_module)
+    print(BetterDag.schema_json(indent=2))
 
 
 if __name__ == "__main__":
