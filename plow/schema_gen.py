@@ -38,7 +38,9 @@ def gen_step_and_args(
         ),
         ast.AnnAssign(
             target=ast.Name(id="args", ctx=ast.Store()),
-            annotation=ast.Name(id=f"List[str] | Dict[str, Any]", ctx=ast.Load()),
+            annotation=ast.Name(
+                id=f"Args | List[str] | Dict[str, Any]", ctx=ast.Load()
+            ),
             simple=1,
         ),
         ast.AnnAssign(
@@ -82,7 +84,7 @@ def gen_step_and_args(
         name=step_class_name,
         bases=[ast.Name(id="BaseModel", ctx=ast.Load())],
         keywords=[],
-        body=step_class_body + [args_ast],
+        body=[args_ast] + step_class_body,
         decorator_list=[],
     )
 
