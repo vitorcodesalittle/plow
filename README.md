@@ -42,6 +42,10 @@ Once this is done, use the script path as `--tasks_path` for the commands below 
 ```yaml
 name: ArithmeticExampleWithControlFlow         # Name of the workflow (not used)
 description: executes (-b +- sqrt(b²-4ac))/2a  # Description of the wk (not used)
+inputs:                                        # Initial state. What is first available to steps
+  a: 4
+  b: 2
+  c: -2
 steps:                                         # Starts defining the DAG
   - alias: 4ac                                 # Node name
     type: multiply                             # Python step function
