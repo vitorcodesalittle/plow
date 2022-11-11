@@ -5,11 +5,23 @@ Workflows are represented as directed acyclic graphs, and specified through a ya
 A JSON schema is generated based on the tasks defined, and together with [yamlls](https://github.com/redhat-developer/yaml-language-server)
 is useful to provide completion when typing the yaml file.
 
-> This project has not been battle tested, and ~~probably~~ has bugs. If you find it interesting, please try it and let me know
-> of bugs/questions/ideas.
+> This project is in early stage, and it ~~probably~~ has bugs. If you find it interesting, please try it and let me know
+> of any bugs/questions/ideas.
 
 ## Quickstart
 
+### Installation
+
+Since plow is still a little baby, we don't actually distribute anywhere but here (in github).
+You'll have to clone this repo to your machine and install it on some other poetry project:
+
+```bash
+git clone https://github.com/vitorcodesalittle/plow.git
+cd my_project
+poetry add ../plow
+```
+
+### Defining Tasks
 Defining what workflows can do might be easy coming from python functions.
 For plow to run properly, the task functions have some requirements:
 - Parameters must have type hints, and be either primitives (float, int, str, bool) or [pydantic BaseModel](https://pydantic-docs.helpmanual.io/usage/models/).
@@ -23,9 +35,9 @@ def add(a: float, b: float) -> float:
     return a + b
 ```
 
-Once this is done, use the script as `--tasks_path` for the commands below so plow knows where to find the task definitions.
+Once this is done, use the script path as `--tasks_path` for the commands below so plow knows where to find the task definitions.
 
-## Brief YAML Spec
+### Brief YAML Spec
 
 ```
 name: ArithmeticExampleWithControlFlow         # Name of the workflow (not used)
@@ -34,13 +46,16 @@ steps:                                         # Starts defining the DAG
   - alias: 4ac                                 # Node name
     type: multiply                             # Python step function
     args:                                      # step function args
-      a: 4                                     # -- an arg may be a value ...
-      b: $ac                                   # -- or a reference to other step's output
-    deoends:                                   # -- Add predicates that may turn this branch off
-      - $other_step.result > 0
+      a: 4                                     # -- an arg may be a value or...
+      b: $ac                                   # -- a reference to other step's output
+    deoends:                                   # Add predicates that may turn this branch off
+      - $other_step.result > 0                 # -- predicates all may reference other steps outputs
 ```
 
-## Commands
+The workflow DAG's edges are taken from `args` and `depends` references, and the execution
+order will follow topological sorting.
+
+### Commands
 
 - `python -m plow.main print --tasks_path <path to python module/script where steps are defined>`: Prints the json schema to stdout.
 - `python -m plow.main run --tasks_path ... <path to workflow yaml>`: Runs a workflow, and outputs the resulting python dict. Each entry is a step's output
