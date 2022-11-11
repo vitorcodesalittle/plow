@@ -49,7 +49,7 @@ steps:                                         # Starts defining the DAG
       a: 4                                     # -- an arg may be a value or...
       b: $ac                                   # -- a reference to other step's output
     deoends:                                   # Add predicates that may turn this branch off
-      - $other_step.result > 0                 # -- predicates all may reference other steps outputs
+      - $other_step.result > 0                 # -- predicates may reference other steps outputs
 ```
 
 The workflow DAG's edges are taken from `args` and `depends` references, and the execution
