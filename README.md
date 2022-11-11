@@ -39,7 +39,7 @@ Once this is done, use the script path as `--tasks_path` for the commands below 
 
 ### Brief YAML Spec
 
-```
+```yaml
 name: ArithmeticExampleWithControlFlow         # Name of the workflow (not used)
 description: executes (-b +- sqrt(b²-4ac))/2a  # Description of the wk (not used)
 steps:                                         # Starts defining the DAG
