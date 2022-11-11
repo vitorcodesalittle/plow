@@ -56,6 +56,8 @@ steps:                                         # Starts defining the DAG
       - $other_step.result > 0                 # -- predicates may reference other steps outputs
 ```
 
+[See full example](./tests/fixtures/quadratic_with_control_flow.yaml)
+
 The workflow DAG's edges are taken from `args` and `depends` references, and the execution
 order will follow topological sorting.
 
