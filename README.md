@@ -39,18 +39,24 @@ Once this is done, use the script path as `--tasks_path` for the commands below 
 
 ### Brief YAML Spec
 
-```
+```yaml
 name: ArithmeticExampleWithControlFlow         # Name of the workflow (not used)
 description: executes (-b +- sqrt(b²-4ac))/2a  # Description of the wk (not used)
+inputs:                                        # Initial state. What is first available to steps
+  a: 4
+  b: 2
+  c: -2
 steps:                                         # Starts defining the DAG
   - alias: 4ac                                 # Node name
     type: multiply                             # Python step function
     args:                                      # step function args
       a: 4                                     # -- an arg may be a value or...
       b: $ac                                   # -- a reference to other step's output
-    deoends:                                   # Add predicates that may turn this branch off
-      - $other_step.result > 0                 # -- predicates all may reference other steps outputs
+    depends:                                   # Add predicates that may turn this branch off
+      - $other_step.result > 0                 # -- predicates may reference other steps outputs
 ```
+
+[See full example](./tests/fixtures/quadratic_with_control_flow.yaml)
 
 The workflow DAG's edges are taken from `args` and `depends` references, and the execution
 order will follow topological sorting.
