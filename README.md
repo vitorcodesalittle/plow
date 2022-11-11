@@ -62,7 +62,7 @@ order will follow topological sorting.
 
 ## Securiy
 
-Running workflows with user input is not safe as plow doesn't sanitize what's passed to some `exec` calls, and might lead to Remote Code Execution.
+Running workflows with untrusted input is not safe as plow doesn't sanitize what's passed to some `exec` calls, and might lead to aribitrary code execution.
 
 ## Goals
 
