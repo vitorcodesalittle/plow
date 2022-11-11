@@ -22,7 +22,8 @@ class Dag(BaseModel):
     class Config:
         underscore_attrs_are_private = True
 
-    name: str
+    name: Optional[str]
+    description: Optional[str]
     inputs: Any
     steps: List[StepSchema]
     _mem: dict[str, Any]
@@ -56,10 +57,8 @@ class Dag(BaseModel):
                 for attribute in ref_attributes:
                     try:
                         # Try accessing as attribute
-                        print("Getting as attribute")
                         value = getattr(value, attribute)
                     except AttributeError:
-                        print("Getting as dict")
                         # Try accessing as dict
                         value = value[attribute]
 
@@ -198,7 +197,6 @@ def make_improved_dag_class(src_module: Optional[str]) -> Type[Dag]:
         clean_builder()  # makes sure builder is in a clean state
         import_plow_decorated_funcs(src_module)
     script = schema_gen.generate_schemas_script()  # gen script defining Step
-    print(script)
     exec(script, globals())  # Run script
 
     class DagOverwritten(Dag):  # overite Dag schema with generated steps
