@@ -52,7 +52,7 @@ steps:                                         # Starts defining the DAG
     args:                                      # step function args
       a: 4                                     # -- an arg may be a value or...
       b: $ac                                   # -- a reference to other step's output
-    deoends:                                   # Add predicates that may turn this branch off
+    depends:                                   # Add predicates that may turn this branch off
       - $other_step.result > 0                 # -- predicates may reference other steps outputs
 ```
 
